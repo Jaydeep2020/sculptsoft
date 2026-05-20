@@ -1,6 +1,6 @@
 from decimal import Decimal
 from datetime import date
-from db.base import Base
+from models.base import Base
 from sqlalchemy import String, Numeric, Enum as SQLEnum, Date, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .enums import CategoryType

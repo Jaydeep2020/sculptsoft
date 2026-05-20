@@ -1,4 +1,4 @@
-from db.base import Base
+from models.base import Base
 from sqlalchemy import String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

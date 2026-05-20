@@ -1,7 +1,7 @@
 from sqlalchemy import Integer, ForeignKey, UniqueConstraint, CheckConstraint
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from db.base import Base
+from models.base import Base
 
 class InventoryStockModel(Base):
 
