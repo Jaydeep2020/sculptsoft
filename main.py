@@ -1,5 +1,6 @@
 from itertools import product
 
+import requests
 import streamlit as st
 import pandas as pd
 
@@ -11,6 +12,8 @@ from services.generic import Generic
 from models.inventory_model import InventoryModel
 from models.product_model import ProductModel
 from models.enums import CategoryType
+
+BASE_URL = "http://127.0.0.1:8000"
 
 st.set_page_config(
     page_title="Inventory Management System",
@@ -47,16 +50,17 @@ if menu == "Add Inventory":
 
     if st.button("Add Inventory"):
 
-        try:
-            inventory = InventoryModel(name=inventory_name, location=location)
+        payload = {
+            "name": inventory_name,
+            location: location
+        }
 
-            with get_session() as session:
-                InventoryManager.add_inventory(session, inventory)
+        response = requests.post(
+            f"{BASE_URL}/inventory-manager/add_inventory",
+            json=payload
+        )
 
-            st.success("Inventory added successfully")
-
-        except Exception as e:
-            st.error(e)
+        st.write(response.json())
 
 # ---------------------------------------------------
 # VIEW INVENTORIES

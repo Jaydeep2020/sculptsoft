@@ -41,7 +41,7 @@ def close_engine():
         print("✅ Database engine disposed successfully...")
         _engine = None
 
-@contextmanager
+# @contextmanager
 def get_session():
     """
     Create a session for database operations.
