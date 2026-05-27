@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from db.database import get_session
 # from main import warranty, expiry_date
@@ -10,6 +10,9 @@ from schemas.product_schema import ProductCreate, ProductResponse
 from schemas.inventory_schema import InventoryCreate
 from services.generic import Generic
 
+from auth.role_dependency import require_role
+from models.enums import UserRole
+
 router = APIRouter(
     prefix="/inventory",
     tags=["Product Operations"]
@@ -17,12 +20,15 @@ router = APIRouter(
 
 
 # Add product in inventory
-@router.post("/add_product")
+@router.post("/add_product", status_code=status.HTTP_201_CREATED)
 def add_product(
         product: ProductCreate,
         inventory: InventoryCreate,
         quantity: int,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        current_user=Depends(
+            require_role([UserRole.STAFF, UserRole.ADMIN])
+        )
 ):
     try:
 
@@ -52,11 +58,18 @@ def add_product(
 
 
 # View Products from inventory
-@router.get("/view-products/", response_model=List[ProductResponse])
+@router.get(
+    "/view-products/",
+    response_model=List[ProductResponse],
+    status_code=status.HTTP_200_OK
+)
 def view_products(
         name: str,
         location: str,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        current_user=Depends(
+            require_role([UserRole.STAFF, UserRole.ADMIN])
+        )
 ):
     try:
         inventory_id = Generic.get_inventory_id(session, name, location)
@@ -73,12 +86,15 @@ def view_products(
 
 
 #Search product in inventory
-@router.get("/search_product", response_model=List[ProductResponse])
+@router.get("/search_product", response_model=List[ProductResponse], status_code=status.HTTP_200_OK)
 def search_products(
         product_name: str,
         inventory_name: str,
         inventory_location: str,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        current_user=Depends(
+            require_role([UserRole.STAFF, UserRole.ADMIN])
+        )
 ):
     try:
         inventory_id = Generic.get_inventory_id(session, inventory_name, inventory_location)
@@ -96,13 +112,16 @@ def search_products(
 
 
 # Update Product
-@router.put("/update_product/")
+@router.put("/update_product/", status_code=status.HTTP_200_OK)
 def update_product(
         inventory_name: str,
         inventory_location: str,
         product_name: str,
         quantity: int,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        current_user=Depends(
+            require_role([UserRole.STAFF, UserRole.ADMIN])
+        )
 ):
     try:
         inventory_id = Generic.get_inventory_id(session, inventory_name, inventory_location)
@@ -123,12 +142,15 @@ def update_product(
 
 
 # delete product from inventory
-@router.delete("/delete_product_from_inventory/")
+@router.delete("/delete_product_from_inventory/", status_code=status.HTTP_200_OK)
 def delete_product_from_inventory(
         inventory_name: str,
         inventory_location: str,
         product_name: str,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        current_user=Depends(
+            require_role([UserRole.ADMIN])
+        )
 ):
     try:
         inventory_id = Generic.get_inventory_id(session, inventory_name, inventory_location)
@@ -147,10 +169,13 @@ def delete_product_from_inventory(
 
 
 # Delete Product Completely from all inventories
-@router.delete("/delete_product/")
+@router.delete("/delete_product/", status_code=status.HTTP_200_OK)
 def delete_product(
         product_name: str,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        current_user=Depends(
+            require_role([UserRole.ADMIN])
+        )
 ):
     try:
         Inventory.delete_product(

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from db.database import get_session
@@ -7,6 +7,9 @@ from models.inventory_model import InventoryModel
 from schemas.inventory_schema import InventoryCreate
 from services.generic import Generic
 
+from auth.role_dependency import require_role
+from models.enums import UserRole
+
 router = APIRouter(
     prefix="/inventory-manager",
     tags = ["Inventory Operations"]
@@ -14,10 +17,13 @@ router = APIRouter(
 
 
 # Add Inventory
-@router.post("/add_inventory")
+@router.post("/add_inventory", status_code=status.HTTP_201_CREATED)
 def add_inventory(
         inventory: InventoryCreate,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        current_user = Depends(
+            require_role([UserRole.STAFF, UserRole.ADMIN])
+        )
 ):
     try:
         inventory_model = InventoryModel(
@@ -40,9 +46,12 @@ def add_inventory(
 
 
 # View all inventories
-@router.get("/view_inventories")
+@router.get("/view_inventories", status_code=status.HTTP_200_OK)
 def view_inventories(
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        current_user=Depends(
+            require_role([UserRole.STAFF, UserRole.ADMIN])
+        )
 ):
     inventories = InventoryManager.view_inventories(session=session)
 
@@ -50,10 +59,13 @@ def view_inventories(
 
 
 # View total stock of product across all inventory
-@router.get("/get_total_stock_across_inventories")
+@router.get("/get_total_stock_across_inventories", status_code=status.HTTP_200_OK)
 def get_total_stock_across_inventories(
         product_name: str,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        current_user=Depends(
+            require_role([UserRole.STAFF, UserRole.ADMIN])
+        )
 ):
     try:
 
@@ -64,11 +76,14 @@ def get_total_stock_across_inventories(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.delete("/delete_inventory")
+@router.delete("/delete_inventory", status_code=status.HTTP_200_OK)
 def delete_inventory(
         inventory_name: str,
         inventory_location: str,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        current_user=Depends(
+            require_role([UserRole.ADMIN])
+        )
 ):
     try:
 
@@ -88,7 +103,7 @@ def delete_inventory(
 
 
 # Transfer stocks from one inventory to another
-@router.post("/transfer_stock/")
+@router.post("/transfer_stock/", status_code=status.HTTP_200_OK)
 def transfer_stock(
         source_inventory_name: str,
         source_inventory_location: str,
@@ -96,7 +111,10 @@ def transfer_stock(
         destination_inventory_location: str,
         product_name: str,
         quantity: int,
-        session: Session = Depends(get_session)
+        session: Session = Depends(get_session),
+        current_user=Depends(
+            require_role([UserRole.STAFF, UserRole.ADMIN])
+        )
 ):
     try:
 

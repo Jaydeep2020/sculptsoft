@@ -5,8 +5,15 @@ class CategoryType(enum.Enum):
     ELECTRICAL = "ELECTRICAL"
 
 
+class UserRole(str, enum.Enum):
+
+    ADMIN = "ADMIN"
+    STAFF = "STAFF"
+
+
 class TransactionType(enum.Enum):
     ADD = "ADD"
     REMOVE = "REMOVE"
     TRANSFER = "TRANSFER"
     ADJUSTMENT = "ADJUSTMENT"
+
